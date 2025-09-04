@@ -39,7 +39,7 @@ parser.add_argument('-r', '--rest',
 args = parser.parse_args()
 
 if not args.rest and len(sys.argv) != 4:
-    print("Wrong number of arguments provided!\n")
+    print("Wrong number of arguments provided, try again!\n")
     parser.print_help()
     sys.exit()
 
