@@ -45,15 +45,15 @@ if not args.rest and len(sys.argv) != 4:
 
 if (args.add):
     result = CalculatorHelper().add(args.add[0], args.add[1])
-    print(f'{args.add[0]}+{args.add[1]}={result}')
+    print(f'Addition result: {args.add[0]}+{args.add[1]}={result}')
 elif (args.subtract):
     result = CalculatorHelper().subtract(args.subtract[0], args.subtract[1])
-    print(f'{args.subtract[0]}-{args.subtract[1]}={result}')
+    print(f'Subtraction result: {args.subtract[0]}-{args.subtract[1]}={result}')
 elif (args.multiply):
     result = CalculatorHelper().multiply(args.multiply[0], args.multiply[1])
-    print(f'{args.multiply[0]}*{args.multiply[1]}={result}')
+    print(f'Multiplication result: {args.multiply[0]}*{args.multiply[1]}={result}')
 elif (args.divide):
     result = CalculatorHelper().divide(args.divide[0], args.divide[1])
-    print(f'{args.divide[0]}/{args.divide[1]}={result}')
+    print(f'Division result: {args.divide[0]}/{args.divide[1]}={result}')
 elif (args.rest):
     calculator_rest_service.main(args)
