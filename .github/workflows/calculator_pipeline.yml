@@ -38,10 +38,12 @@ jobs:
       run: pytest --junit-xml=report.xml
     
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action@v2
+      uses: dorny/test-reporter@v1
       if: always()  # Run even if tests fail
       with:
-        files: report.xml
+        name: pytest
+        path: report.xml
+        reporter: java-junit
 
   build-and-deploy:
     runs-on: ubuntu-latest
