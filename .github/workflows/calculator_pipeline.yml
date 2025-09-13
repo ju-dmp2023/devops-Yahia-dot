@@ -122,5 +122,5 @@ jobs:
     
     - name: Build and push Docker image
       run: |
-        docker build -t judevops.azuecr.io/yahia_alali-calculator ./BE
-        docker push judevops.azuecr.io/yahia_alali-calculator
+        docker build -t judevops.azurecr.io/yahia_alali-calculator ./BE
+        docker push judevops.azurecr.io/yahia_alali-calculator
