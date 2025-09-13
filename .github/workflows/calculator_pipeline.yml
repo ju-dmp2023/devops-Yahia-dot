@@ -28,22 +28,116 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r BE/requirements.txt
-        # Install testing dependencies
-        pip install pytest requests
-        # Install generated client dependencies
-        pip install httpx attrs typing-extensions python-dateutil
+        pip install pytest requests httpx attrs typing-extensions python-dateutil
     
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=." >> $GITHUB_ENV
     
-    - name: Start REST API in background
+    - name: Debug environment and start API with extensive logging
       run: |
-        cd BE && python calculator.py --rest --port 5001 &
-        sleep 10
-        curl -f http://localhost:5001/docs || curl -f http://localhost:5001/ || echo "API starting..."
+        echo "=== DEBUGGING ENVIRONMENT ==="
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        echo "BE directory contents:"
+        ls -la BE/
+        echo "Python version: $(python --version)"
+        echo "Pip packages:"
+        pip list
+        
+        echo "=== TESTING CALCULATOR.PY ==="
+        cd BE
+        echo "Current directory: $(pwd)"
+        echo "Testing if calculator.py exists and is executable:"
+        ls -la calculator.py
+        
+        echo "Testing basic import:"
+        python -c "import calculator; print('Import successful')" || echo "Import failed"
+        
+        echo "Testing help command:"
+        python calculator.py --help || echo "Help command failed"
+        
+        echo "=== STARTING API SERVER ==="
+        echo "Starting server with full output capture..."
+        
+        # Start the server with all output captured
+        python calculator.py --rest --port 5001 > ../api_output.log 2>&1 &
+        SERVER_PID=$!
+        echo "Server started with PID: $SERVER_PID"
+        
+        # Give it some time to start
+        sleep 5
+        
+        echo "=== CHECKING SERVER STATUS ==="
+        echo "Checking if process is still running:"
+        if kill -0 $SERVER_PID 2>/dev/null; then
+          echo "✓ Process $SERVER_PID is still running"
+        else
+          echo "✗ Process $SERVER_PID has died"
+          echo "Server output:"
+          cat ../api_output.log
+          exit 1
+        fi
+        
+        echo "Process list:"
+        ps aux | grep -v grep | grep calculator
+        
+        echo "Network connections:"
+        netstat -tlnp | grep 5001 || echo "No process listening on port 5001"
+        
+        echo "Server output so far:"
+        cat ../api_output.log
+        
+        echo "=== TESTING CONNECTIVITY ==="
+        for i in {1..10}; do
+          echo "Attempt $i: Testing connection to localhost:5001"
+          if curl -v --connect-timeout 5 http://localhost:5001/ 2>&1; then
+            echo "✓ Connection successful!"
+            break
+          else
+            echo "✗ Connection failed, waiting 3 seconds..."
+            sleep 3
+          fi
+        done
+        
+        echo "Final server output:"
+        cat ../api_output.log
+        
+        echo "Final process check:"
+        if kill -0 $SERVER_PID 2>/dev/null; then
+          echo "✓ Server process is still running"
+        else
+          echo "✗ Server process has died"
+          exit 1
+        fi
     
-    - name: Run tests
-      run: pytest --junit-xml=report.xml
+    - name: Run tests with debug info
+      run: |
+        echo "=== RUNNING TESTS ==="
+        echo "Server output before tests:"
+        cat api_output.log 2>/dev/null || echo "No server output file found"
+        
+        echo "Network status:"
+        netstat -tlnp | grep 5001 || echo "No process on port 5001"
+        
+        echo "Running pytest..."
+        pytest --junit-xml=report.xml -v
+    
+    - name: Show debug info on failure
+      if: failure()
+      run: |
+        echo "=== FAILURE DEBUG INFO ==="
+        echo "Server output:"
+        cat api_output.log 2>/dev/null || echo "No server output file"
+        
+        echo "Process list:"
+        ps aux | grep python
+        
+        echo "Network connections:"
+        netstat -tlnp
+        
+        echo "Test output files:"
+        ls -la *.xml *.log 2>/dev/null || echo "No output files"
     
     - name: Publish test results
       uses: dorny/test-reporter@v1
