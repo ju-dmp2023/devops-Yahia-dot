@@ -30,8 +30,9 @@ jobs:
     
     - name: Start REST API in background
       run: |
-        python BE/calculator.py --rest &
-        sleep 5  # Give the API time to start
+        cd BE && python calculator.py --rest --port 5001 &
+        sleep 10  # Give the API time to start
+        curl -f http://localhost:5001/docs || curl -f http://localhost:5001/ || echo "API starting..."
     
     - name: Run tests
       run: pytest --junit-xml=report.xml
