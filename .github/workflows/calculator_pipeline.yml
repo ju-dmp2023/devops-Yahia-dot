@@ -33,111 +33,69 @@ jobs:
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=." >> $GITHUB_ENV
     
-    - name: Debug environment and start API with extensive logging
+    - name: Start REST API in background
       run: |
-        echo "=== DEBUGGING ENVIRONMENT ==="
-        echo "Current directory: $(pwd)"
-        echo "Directory contents:"
-        ls -la
-        echo "BE directory contents:"
-        ls -la BE/
-        echo "Python version: $(python --version)"
-        echo "Pip packages:"
-        pip list
-        
-        echo "=== TESTING CALCULATOR.PY ==="
         cd BE
-        echo "Current directory: $(pwd)"
-        echo "Testing if calculator.py exists and is executable:"
-        ls -la calculator.py
+        echo "Starting API server with default settings..."
+        python calculator.py --rest > ../api.log 2>&1 &
+        API_PID=$!
+        echo "API started with PID: $API_PID"
         
-        echo "Testing basic import:"
-        python -c "import calculator; print('Import successful')" || echo "Import failed"
+        # Wait for server to start
+        sleep 15
         
-        echo "Testing help command:"
-        python calculator.py --help || echo "Help command failed"
-        
-        echo "=== STARTING API SERVER ==="
-        echo "Starting server with full output capture..."
-        
-        # Start the server with all output captured
-        python calculator.py --rest --port 5001 > ../api_output.log 2>&1 &
-        SERVER_PID=$!
-        echo "Server started with PID: $SERVER_PID"
-        
-        # Give it some time to start
-        sleep 5
-        
-        echo "=== CHECKING SERVER STATUS ==="
-        echo "Checking if process is still running:"
-        if kill -0 $SERVER_PID 2>/dev/null; then
-          echo "✓ Process $SERVER_PID is still running"
+        echo "Checking if process is running:"
+        if kill -0 $API_PID 2>/dev/null; then
+          echo "Process is still running"
         else
-          echo "✗ Process $SERVER_PID has died"
-          echo "Server output:"
-          cat ../api_output.log
+          echo "Process died. Server output:"
+          cat ../api.log
           exit 1
         fi
         
-        echo "Process list:"
-        ps aux | grep -v grep | grep calculator
-        
-        echo "Network connections:"
-        netstat -tlnp | grep 5001 || echo "No process listening on port 5001"
-        
-        echo "Server output so far:"
-        cat ../api_output.log
-        
-        echo "=== TESTING CONNECTIVITY ==="
-        for i in {1..10}; do
-          echo "Attempt $i: Testing connection to localhost:5001"
-          if curl -v --connect-timeout 5 http://localhost:5001/ 2>&1; then
-            echo "✓ Connection successful!"
+        # Test common ports to find where the API is running
+        API_PORT=""
+        for port in 8000 5000 3000 8080; do
+          echo "Testing port $port..."
+          if curl -f --connect-timeout 5 http://localhost:$port/ 2>/dev/null; then
+            echo "API is running on port $port"
+            API_PORT=$port
             break
-          else
-            echo "✗ Connection failed, waiting 3 seconds..."
-            sleep 3
           fi
         done
         
-        echo "Final server output:"
-        cat ../api_output.log
-        
-        echo "Final process check:"
-        if kill -0 $SERVER_PID 2>/dev/null; then
-          echo "✓ Server process is still running"
-        else
-          echo "✗ Server process has died"
+        if [ -z "$API_PORT" ]; then
+          echo "API not found on any common port. Server output:"
+          cat ../api.log
+          echo "Network connections:"
+          netstat -tlnp | grep python || echo "No python processes listening"
           exit 1
         fi
+        
+        # Save the port for tests
+        echo "API_PORT=$API_PORT" >> $GITHUB_ENV
+        echo "API is successfully running on port $API_PORT"
     
-    - name: Run tests with debug info
+    - name: Run tests
       run: |
-        echo "=== RUNNING TESTS ==="
-        echo "Server output before tests:"
-        cat api_output.log 2>/dev/null || echo "No server output file found"
-        
-        echo "Network status:"
-        netstat -tlnp | grep 5001 || echo "No process on port 5001"
-        
-        echo "Running pytest..."
-        pytest --junit-xml=report.xml -v
+        echo "Running tests with API on port ${API_PORT:-8000}"
+        # Update test files to use the correct port if needed
+        if [ ! -z "$API_PORT" ] && [ "$API_PORT" != "5001" ]; then
+          echo "Updating test files to use port $API_PORT"
+          sed -i "s/localhost:5001/localhost:$API_PORT/g" test/test_api.py
+          sed -i "s/5001/$API_PORT/g" test/test_api.py
+          sed -i "s/localhost:5001/localhost:$API_PORT/g" test/test_api_generated.py
+          sed -i "s/5001/$API_PORT/g" test/test_api_generated.py
+        fi
+        pytest --junit-xml=report.xml
     
-    - name: Show debug info on failure
+    - name: Show API logs on failure
       if: failure()
       run: |
-        echo "=== FAILURE DEBUG INFO ==="
-        echo "Server output:"
-        cat api_output.log 2>/dev/null || echo "No server output file"
-        
-        echo "Process list:"
-        ps aux | grep python
-        
+        echo "API server output:"
+        cat api.log 2>/dev/null || echo "No API log found"
         echo "Network connections:"
-        netstat -tlnp
-        
-        echo "Test output files:"
-        ls -la *.xml *.log 2>/dev/null || echo "No output files"
+        netstat -tlnp || echo "Cannot show network connections"
     
     - name: Publish test results
       uses: dorny/test-reporter@v1
