@@ -22,7 +22,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.13'
+        python-version: '3.11'
     
     - name: Install Python dependencies
       run: |
@@ -37,22 +37,20 @@ jobs:
       run: |
         cd BE
         echo "Starting API server with default settings..."
-        python BE/calculator.py --rest &
+        python calculator.py --rest &
         
         # Wait for server to start
         sleep 15
-        
-        
     
     - name: Run tests
       run: |
         pytest --junit-xml=report.xml
-  
     
-    uses: mikepenz/action-junit-report@v5
-    if: success() || failure() # always run even if the previous step fails
-    with:
-    report_paths: '**/*.xml'
+    - name: Publish Test Results
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure()
+      with:
+        report_paths: '**/*.xml'
 
   build-and-deploy:
     runs-on: ubuntu-latest
