@@ -222,7 +222,7 @@ def main(args):
 
     parser = argparse.ArgumentParser(description='Calculator server')
 
-    parser.add_argument('--port', type=int, default='5002', help='Port, 5002 is default')
+    parser.add_argument('--port', type=int, default='5001', help='Port, 500 is default')
     parser.add_argument("--loglevel", **ifenv('LOGLEVEL', 'DEBUG'), choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set Flask logging level, DEBUG is default")
     parser.add_argument('--debug', action='store_true', help='Flask debug')
     parser.add_argument('--no-debug', dest='debug', action='store_false', help='Flask no debug is default')
