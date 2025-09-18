@@ -1,0 +1,30 @@
+name: calculator-app
+
+services:
+  api-calculator:
+    build:
+      context: ./BE
+      dockerfile: Dockerfile
+    container_name: api-calculator
+    command: ["--rest"]
+    ports:
+      - "5001:5001"
+    networks:
+      - calculator
+
+  web-calculator:
+    build:
+      context: ./FE
+      dockerfile: Dockerfile
+    container_name: web-calculator
+    environment:
+      - REMOTE_SERVER_ADDRESS=http://api-calculator:5001
+      - NGINX_PORT=8080
+    ports:
+      - "8080:8080"
+    networks:
+      - calculator
+
+networks:
+  calculator:
+    driver: bridge

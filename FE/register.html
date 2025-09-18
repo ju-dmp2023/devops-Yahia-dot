@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivial Calculator</title>
+    <link rel="stylesheet" href="styles.css?v=1.0.1">
+</head>
+
+<body>
+    <div id="register-form" class="calculator">
+        <label>Username:</label>
+        <input type="text" id="username" class="calculator-screen">
+        <label>Password:</label>
+        <input type="password" id="password1" class="calculator-screen">
+        <label>Password again:</label>
+        <input type="password" id="password2" class="calculator-screen">
+        <div id="calculator-keys" class="calculator-keys">
+            <button id="register" class="key key-success" onclick="register()">Register</button>
+        </div>
+        <br>
+        <div id="errormsg" class="alert error" style="display:none"></div>
+    </div>
+    <div id="spinner" style="display: none;">
+        <div class="loader"></div>
+    </div>
+    <script src="config.js?v=1.0.1"></script>
+    <script src="script.js?v=1.0.2"></script>
+</body>
+
+</html>

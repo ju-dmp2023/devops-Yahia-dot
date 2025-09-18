@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivial Calculator</title>
+    <link rel="stylesheet" href="styles.css?v=1.0.1">
+</head>
+
+<body>
+    <div id="calculator" class="calculator">
+        <input type="text" id="calculator-screen" class="calculator-screen" readonly>
+        <div id="calculator-keys" class="calculator-keys">
+            <button id="key-1" class="key" onclick="appendNumber(1)">1</button>
+            <button id="key-2" class="key" onclick="appendNumber(2)">2</button>
+            <button id="key-3" class="key" onclick="appendNumber(3)">3</button>
+            <button id="key-add" class="key operation" onclick="chooseOperation('+')">+</button>
+
+            <button id="key-4" class="key" onclick="appendNumber(4)">4</button>
+            <button id="key-5" class="key" onclick="appendNumber(5)">5</button>
+            <button id="key-6" class="key" onclick="appendNumber(6)">6</button>
+            <button id="key-subtract" class="key operation" onclick="chooseOperation('-')">-</button>
+
+            <button id="key-7" class="key" onclick="appendNumber(7)">7</button>
+            <button id="key-8" class="key" onclick="appendNumber(8)">8</button>
+            <button id="key-9" class="key" onclick="appendNumber(9)">9</button>
+            <button id="key-multiply" class="key operation" onclick="chooseOperation('*')">*</button>
+
+            <button id="key-0" class="key" onclick="appendNumber(0)">0</button>
+            <button id="key-decimal" class="key" onclick="appendNumber('.')">,</button>
+            <button id="key-clear" class="key clear" onclick="clearScreen()">C</button>
+            <button id="key-divide" class="key operation" onclick="chooseOperation('/')">/</button>
+        </div>
+        <button id="key-equals" class="key equals" onclick="computeResult()">=</button>
+        <div id="functions" class="bottom-row">
+            <button id="remote-toggle" class="remote-toggle enabled" onclick="toggleRemoteService()">RS</button>
+            <button id="toggle-button" class="toggle-button" onclick="toggleTextWindow()">>></button>
+            <button id="logout-button" class="logout-button" onclick="logout()">Logout</button>
+        </div>
+        <div id="user-profile" class="bottom-row">
+            <label id="user-name" onload="getUserName()"></label>
+        </div>
+        <div id="text-window" class="text-window">
+            <center>
+                <button id="clear-history" class="key clear" onclick="clearTextWindow()">Clear</button>
+            </center>
+            <textarea id="history" rows="10" cols="30" placeholder="The history is empty..."></textarea>
+        </div>
+    </div>
+    <script src="config.js?v=1.0.1"></script>
+    <script src="script.js?v=1.0.2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () { getUserName(); });
+    </script>
+</body>
+
+</html>

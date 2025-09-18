@@ -12,7 +12,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  unit-and-api-tests:
     runs-on: ubuntu-latest
     
     steps:
@@ -42,7 +42,7 @@ jobs:
         # Wait for server to start
         sleep 15
     
-    - name: Run tests
+    - name: Run unit and API tests
       run: |
         pytest --junit-xml=report.xml
     
@@ -52,9 +52,73 @@ jobs:
       with:
         report_paths: '**/*.xml'
 
+  end-to-end-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies for E2E tests
+      run: |
+        python -m pip install --upgrade pip
+        pip install playwright pytest
+    
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+    
+    - name: Start Calculator application with Docker Compose
+      run: |
+        docker compose -p webcalculator up -d
+    
+    - name: Wait for application to be ready
+      run: |
+        echo "Waiting for application to start..."
+        timeout 120 bash -c 'until curl -f http://localhost:8080/login.html; do echo "Waiting for app..."; sleep 5; done'
+        echo "Application is ready!"
+    
+    - name: Run end-to-end tests
+      run: |
+        cd test/web
+        pytest -v --tb=short --junit-xml=e2e-report.xml
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          test/web/e2e-report.xml
+          test/web/test-results/
+    
+    - name: Publish E2E Test Results
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure()
+      with:
+        report_paths: 'test/web/e2e-report.xml'
+        check_name: 'E2E Test Results'
+    
+    - name: Show Docker logs on failure
+      if: failure()
+      run: |
+        echo "=== Docker Compose Logs ==="
+        docker compose -p webcalculator logs
+    
+    - name: Stop Calculator application
+      if: always()
+      run: |
+        docker compose -p webcalculator down
+        docker compose -p webcalculator rm -f
+
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [unit-and-api-tests, end-to-end-tests]
     
     steps:
     - name: Checkout code
