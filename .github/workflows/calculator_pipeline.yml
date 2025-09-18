@@ -89,7 +89,7 @@ jobs:
         pytest -v --tb=short --junit-xml=e2e-report.xml
     
     - name: Upload E2E test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: e2e-test-results
