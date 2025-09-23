@@ -1,11 +1,11 @@
 import pytest
 import requests
-from calculator_client.client import Client
-from calculator_client.api.actions import calculate, login, logout, register, users_current
-from calculator_client.models.calculation import Calculation
-from calculator_client.models.opertions import Opertions
-from calculator_client.models.user import User
-from calculator_client.models import ResultResponse, UserResponse, ErrorResponse, HTTPValidationError
+from test.calculator_client.client import Client
+from test.calculator_client.api.actions import calculate, login, logout, register, users_current
+from test.calculator_client.models.calculation import Calculation
+from test.calculator_client.models.opertions import Opertions
+from test.calculator_client.models.user import User
+from test.calculator_client.models import ResultResponse, UserResponse, ErrorResponse, HTTPValidationError
 
 
 class TestGeneratedApi:
